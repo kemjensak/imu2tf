@@ -36,3 +36,13 @@ target_link_libraries(imu2link_tf
     ${catkin_LIBRARIES}
 )
 
+
+add_executable(enu2bodyfixed
+src/enu2bodyfixed.cpp)
+
+add_dependencies(enu2bodyfixed ${${PROJECT_NAME}_EXPORTED_TARGETS} ${catkin_EXPORTED_TARGETS})
+
+target_link_libraries(enu2bodyfixed
+    ${catkin_LIBRARIES}
+)
+
