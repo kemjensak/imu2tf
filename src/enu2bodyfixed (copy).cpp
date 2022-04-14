@@ -6,8 +6,8 @@
 #include <sensor_msgs/Imu.h>
 #include <ros/console.h>
 
-tf2::Quaternion initialImuQuaternion_tf, imuQuaternion_tf, relativeQuaternion_tf, biggestRelativeQuaternion_tf, waist2bodyFixedQuaternion_tf, ref2bodyFixedQuaternion_tf;
-geometry_msgs::Quaternion imuQuaternion, initialImuQuaternion, waist2bodyFixedQuaternion, ref2bodyFixedQuaternion, relativeQuaternion;
+tf2::Quaternion initialImuQuaternion_tf, imuQuaternion_tf, relativeQuaternion_tf, biggestRelativeQuaternion_tf, waist2bodyFixedQuaternion_tf;
+geometry_msgs::Quaternion imuQuaternion, initialImuQuaternion, waist2bodyFixedQuaternion, relativeQuaternion;
 tf2::Vector3 rotationAxis;
 float relativeRotationAngle, biggestRotationAngle = 0;
 bool initialized = false;
@@ -30,9 +30,7 @@ void imudataCallback(const sensor_msgs::Imu::ConstPtr& msg){
   if (relativeRotationAngle > biggestRotationAngle){
     biggestRotationAngle = relativeRotationAngle;
     biggestRelativeQuaternion_tf = relativeQuaternion_tf;
-    initialImuQuaternion_tf * biggestRelativeQuaternion_tf;
-    // rotationAxis = biggestRelativeQuaternion_tf.getAxis();
-    rotationAxis = (initialImuQuaternion_tf * biggestRelativeQuaternion_tf).inverse().getAxis();
+    rotationAxis = biggestRelativeQuaternion_tf.getAxis();
   }
   
 
@@ -74,10 +72,7 @@ int main(int argc, char** argv){
   // }
   
   // waist2bodyFixedQuaternion_tf.setRotation(rotationAxis.cross(tf2::Vector3(0.0, 1.0, 0.0)), rotationAxis.angle(tf2::Vector3(0.0, 1.0, 0.0)));
-  rotationAxis.setZ(0);
-
-  ref2bodyFixedQuaternion_tf.setRotation(tf2::Vector3(0.0, 0.0, 1.0), rotationAxis.angle(tf2::Vector3(0.0, 1.0, 0.0)));
-  waist2bodyFixedQuaternion_tf = initialImuQuaternion_tf.inverse() * ref2bodyFixedQuaternion_tf ;
+  waist2bodyFixedQuaternion_tf.setRotation(tf2::Vector3(0.0, 1.0, 0.0)), rotationAxis.angle(tf2::Vector3(0.0, 1.0, 0.0)));
 
   // ROS_INFO("biggest rotation angle: %f \nrotation axis x: %f, y: %f, z: %f"
   //           ,biggestRotationAngle, rotationAxis.x(), rotationAxis.y(), rotationAxis.z());
