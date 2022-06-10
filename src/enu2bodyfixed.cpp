@@ -30,7 +30,7 @@ void imudataCallback(const sensor_msgs::Imu::ConstPtr& msg){
   if (relativeRotationAngle > biggestRotationAngle){
     biggestRotationAngle = relativeRotationAngle;
     biggestRelativeQuaternion_tf = relativeQuaternion_tf;
-    initialImuQuaternion_tf * biggestRelativeQuaternion_tf;
+    // initialImuQuaternion_tf * biggestRelativeQuaternion_tf;
     // rotationAxis = biggestRelativeQuaternion_tf.getAxis();
     rotationAxis = (initialImuQuaternion_tf * biggestRelativeQuaternion_tf).inverse().getAxis();
   }
