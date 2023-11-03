@@ -7,120 +7,90 @@
 #include <sensor_msgs/Imu.h>
 
 tf2::Quaternion lowerImuQuaternion_tf,
-                upperImuQuaternion_tf, 
-                upper2lowerRelativeQuaternion_tf, 
-                bodyFixed2upperRelativeQuaternion_tf,
-                waistImuQuaternion_tf,
-                ref2bodyFixedRelativeQuaternion_tf;
-geometry_msgs::Quaternion lowerImuQuaternion, upperImuQuaternion, upper2lowerRelativeQuaternion, bodyFixed2upperRelativeQuaternion, waistImuQuaternion, ref2bodyFixedRelativeQuaternion;
+                upperImuQuaternion_tf,
+                upper2lowerRelativeQuaternion_tf;
+                
+geometry_msgs::Quaternion lowerImuQuaternion,
+                          upperImuQuaternion,
+                          upper2lowerRelativeQuaternion;
 
-void waistImudataCallback(const geometry_msgs::Quaternion::ConstPtr& msg){
-  static tf2_ros::TransformBroadcaster br;
-  geometry_msgs::TransformStamped transformStamped;
+void waistImudataCallback(const geometry_msgs::Quaternion::ConstPtr &msg)
+{
+    static tf2_ros::TransformBroadcaster br;
+    geometry_msgs::TransformStamped transformStamped;
 
-  // waistImuQuaternion = msg;
-  // tf2::convert(waistImuQuaternion , waistImuQuaternion_tf);
-
-  transformStamped.header.stamp = ros::Time::now();
-  transformStamped.header.frame_id = "earth";
-  transformStamped.child_frame_id = "fbf";
-  transformStamped.transform.translation.x = 0;
-  transformStamped.transform.translation.y = 0;
-  transformStamped.transform.translation.z = 0.5;
-  transformStamped.transform.rotation = *msg;
-  br.sendTransform(transformStamped);
-
-  
+    transformStamped.header.stamp = ros::Time::now();
+    transformStamped.header.frame_id = "earth";
+    transformStamped.child_frame_id = "fbf";
+    transformStamped.transform.translation.x = 0;
+    transformStamped.transform.translation.y = 0;
+    transformStamped.transform.translation.z = 0.5;
+    transformStamped.transform.rotation = *msg;
+    br.sendTransform(transformStamped);
 }
 
-void upperImudataCallback(const geometry_msgs::Quaternion::ConstPtr& msg){
-  static tf2_ros::TransformBroadcaster br;
-  geometry_msgs::TransformStamped transformStamped;
+void upperImudataCallback(const geometry_msgs::Quaternion::ConstPtr &msg)
+{
+    static tf2_ros::TransformBroadcaster br;
+    geometry_msgs::TransformStamped transformStamped;
 
-  upperImuQuaternion = *msg;
-  tf2::convert(upperImuQuaternion , upperImuQuaternion_tf);
-  
-  // bodyFixed2upperRelativeQuaternion_tf = ref2bodyFixedRelativeQuaternion_tf.inverse() * upperImuQuaternion_tf;
-  bodyFixed2upperRelativeQuaternion_tf = upperImuQuaternion_tf;
-
-  tf2::convert(bodyFixed2upperRelativeQuaternion_tf , bodyFixed2upperRelativeQuaternion);
-
-  transformStamped.header.stamp = ros::Time::now();
-  transformStamped.header.frame_id = "fbf";
-  transformStamped.child_frame_id = "upper_arm";
-  transformStamped.transform.translation.x = 0;
-  transformStamped.transform.translation.y = -0.20;
-  transformStamped.transform.translation.z = 0.45;
-  transformStamped.transform.rotation = bodyFixed2upperRelativeQuaternion;
-  br.sendTransform(transformStamped);
-
-  
+    transformStamped.header.stamp = ros::Time::now();
+    transformStamped.header.frame_id = "fbf";
+    transformStamped.child_frame_id = "upper_arm";
+    transformStamped.transform.translation.x = 0;
+    transformStamped.transform.translation.y = -0.20;
+    transformStamped.transform.translation.z = 0.45;
+    transformStamped.transform.rotation = *msg;
+    br.sendTransform(transformStamped);
 }
 
-void lowerImudataCallback(const geometry_msgs::Quaternion::ConstPtr& msg){
-  static tf2_ros::TransformBroadcaster br;
-  geometry_msgs::TransformStamped transformStamped;
+void lowerImudataCallback(const geometry_msgs::Quaternion::ConstPtr &msg)
+{
+    static tf2_ros::TransformBroadcaster br;
+    geometry_msgs::TransformStamped transformStamped;
 
-  lowerImuQuaternion = *msg;
-  tf2::convert(lowerImuQuaternion , lowerImuQuaternion_tf);
+    lowerImuQuaternion = *msg;
+    tf2::convert(lowerImuQuaternion, lowerImuQuaternion_tf);
 
+    upper2lowerRelativeQuaternion_tf = upperImuQuaternion_tf.inverse() * lowerImuQuaternion_tf;
 
-  upper2lowerRelativeQuaternion_tf = upperImuQuaternion_tf.inverse() * lowerImuQuaternion_tf ;
+    tf2::convert(upper2lowerRelativeQuaternion_tf, upper2lowerRelativeQuaternion);
 
-  tf2::convert(upper2lowerRelativeQuaternion_tf , upper2lowerRelativeQuaternion);
-  
-  transformStamped.header.stamp = ros::Time::now();
-  transformStamped.header.frame_id = "upper_arm";
-  transformStamped.child_frame_id = "lower_arm";
-  transformStamped.transform.translation.x = 0;
-  transformStamped.transform.translation.y = 0;
-  transformStamped.transform.translation.z = -0.27;
-  transformStamped.transform.rotation = upper2lowerRelativeQuaternion;
-  br.sendTransform(transformStamped);
+    transformStamped.header.stamp = ros::Time::now();
+    transformStamped.header.frame_id = "upper_arm";
+    transformStamped.child_frame_id = "lower_arm";
+    transformStamped.transform.translation.x = 0;
+    transformStamped.transform.translation.y = 0;
+    transformStamped.transform.translation.z = -0.27;
+    transformStamped.transform.rotation = upper2lowerRelativeQuaternion;
+    br.sendTransform(transformStamped);
 
-  transformStamped.header.frame_id = "lower_arm";
-  transformStamped.child_frame_id = "wrist";
-  transformStamped.transform.translation.x = 0;
-  transformStamped.transform.translation.y = 0;
-  transformStamped.transform.translation.z = -0.3;
-  transformStamped.transform.rotation.x = 0;
-  transformStamped.transform.rotation.y = 0;
-  transformStamped.transform.rotation.z = 0;
-  transformStamped.transform.rotation.w = 1;
-  br.sendTransform(transformStamped);
+    transformStamped.header.frame_id = "lower_arm";
+    transformStamped.child_frame_id = "wrist";
+    transformStamped.transform.translation.x = 0;
+    transformStamped.transform.translation.y = 0;
+    transformStamped.transform.translation.z = -0.3;
+    transformStamped.transform.rotation.x = 0;
+    transformStamped.transform.rotation.y = 0;
+    transformStamped.transform.rotation.z = 0;
+    transformStamped.transform.rotation.w = 1;
+    br.sendTransform(transformStamped);
 }
 
+int main(int argc, char **argv)
+{
+    ros::init(argc, argv, "imu2link_tf");
 
-int main(int argc, char** argv){
-  ros::init(argc, argv, "imu2link_tf");
+    ros::NodeHandle nh;
 
-  ros::NodeHandle nh;
-    
-  ros::Subscriber upperImuSub = nh.subscribe("/shoulder_fbf", 10, upperImudataCallback);
-  ros::Subscriber lowerImuSub = nh.subscribe("/wrist_fbf", 10, lowerImudataCallback);
-  ros::Subscriber waistImuSub = nh.subscribe("/dh_matrix_fbf", 10, waistImudataCallback);
+    ros::Subscriber upperImuSub = nh.subscribe("/shoulder_fbf", 1, upperImudataCallback);
+    ros::Subscriber lowerImuSub = nh.subscribe("/wrist_fbf", 1, lowerImudataCallback);
+    ros::Subscriber waistImuSub = nh.subscribe("/dh_matrix_fbf", 1, waistImudataCallback);
 
-  geometry_msgs::TransformStamped transformStamped;
-  tf2_ros::Buffer tfBuffer;
-  // tf2_ros::TransformListener tfListener(tfBuffer);
-
-  while (ros::ok())
+    while (ros::ok())
     {
-      // try{
-      //   transformStamped = tfBuffer.lookupTransform("ref", "body_fixed",
-      //                          ros::Time(0));
-      //   ref2bodyFixedRelativeQuaternion = transformStamped.transform.rotation;
-      //   tf2::convert(ref2bodyFixedRelativeQuaternion , ref2bodyFixedRelativeQuaternion_tf);
-      // }
-      // catch (tf2::TransformException &ex) {
-      //   ROS_WARN("%s",ex.what());
-      //   ros::Duration(1.0).sleep();
-      //   // continue;
-      // }
-      ros::spinOnce();
+        ros::spinOnce();
     }
-  
 
-  
-  return 0;
+    return 0;
 };
