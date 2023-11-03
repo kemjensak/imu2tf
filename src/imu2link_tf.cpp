@@ -6,10 +6,15 @@
 #include <geometry_msgs/TransformStamped.h>
 #include <sensor_msgs/Imu.h>
 
-tf2::Quaternion lowerImuQuaternion_tf, upperImuQuaternion_tf, upper2lowerRelativeQuaternion_tf, bodyFixed2upperRelativeQuaternion_tf, waistImuQuaternion_tf, ref2bodyFixedRelativeQuaternion_tf;
+tf2::Quaternion lowerImuQuaternion_tf,
+                upperImuQuaternion_tf, 
+                upper2lowerRelativeQuaternion_tf, 
+                bodyFixed2upperRelativeQuaternion_tf,
+                waistImuQuaternion_tf,
+                ref2bodyFixedRelativeQuaternion_tf;
 geometry_msgs::Quaternion lowerImuQuaternion, upperImuQuaternion, upper2lowerRelativeQuaternion, bodyFixed2upperRelativeQuaternion, waistImuQuaternion, ref2bodyFixedRelativeQuaternion;
 
-void waistImudataCallback(const sensor_msgs::Imu::ConstPtr& msg){
+void waistImudataCallback(const geometry_msgs::Quaternion::ConstPtr& msg){
   static tf2_ros::TransformBroadcaster br;
   geometry_msgs::TransformStamped transformStamped;
 
@@ -17,18 +22,18 @@ void waistImudataCallback(const sensor_msgs::Imu::ConstPtr& msg){
   // tf2::convert(waistImuQuaternion , waistImuQuaternion_tf);
 
   transformStamped.header.stamp = ros::Time::now();
-  transformStamped.header.frame_id = "ref";
-  transformStamped.child_frame_id = "waist";
+  transformStamped.header.frame_id = "earth";
+  transformStamped.child_frame_id = "fbf";
   transformStamped.transform.translation.x = 0;
-  transformStamped.transform.translation.y = -0.15;
-  transformStamped.transform.translation.z = 0.5;
+  transformStamped.transform.translation.y = 0;
+  transformStamped.transform.translation.z = 0;
   transformStamped.transform.rotation = msg->orientation;
   br.sendTransform(transformStamped);
 
   
 }
 
-void upperImudataCallback(const sensor_msgs::Imu::ConstPtr& msg){
+void upperImudataCallback(const geometry_msgs::Quaternion::ConstPtr& msg){
   static tf2_ros::TransformBroadcaster br;
   geometry_msgs::TransformStamped transformStamped;
 
@@ -39,18 +44,18 @@ void upperImudataCallback(const sensor_msgs::Imu::ConstPtr& msg){
   tf2::convert(bodyFixed2upperRelativeQuaternion_tf , bodyFixed2upperRelativeQuaternion);
 
   transformStamped.header.stamp = ros::Time::now();
-  transformStamped.header.frame_id = "body_fixed";
+  transformStamped.header.frame_id = "fbf";
   transformStamped.child_frame_id = "upper_arm";
   transformStamped.transform.translation.x = 0;
-  transformStamped.transform.translation.y = 0;
-  transformStamped.transform.translation.z = 0;
+  transformStamped.transform.translation.y = -0.20;
+  transformStamped.transform.translation.z = 0.45;
   transformStamped.transform.rotation = bodyFixed2upperRelativeQuaternion;
   br.sendTransform(transformStamped);
 
   
 }
 
-void lowerImudataCallback(const sensor_msgs::Imu::ConstPtr& msg){
+void lowerImudataCallback(const geometry_msgs::Quaternion::ConstPtr& msg){
   static tf2_ros::TransformBroadcaster br;
   geometry_msgs::TransformStamped transformStamped;
 
@@ -65,7 +70,7 @@ void lowerImudataCallback(const sensor_msgs::Imu::ConstPtr& msg){
   transformStamped.header.stamp = ros::Time::now();
   transformStamped.header.frame_id = "upper_arm";
   transformStamped.child_frame_id = "lower_arm";
-  transformStamped.transform.translation.x = 0.3;
+  transformStamped.transform.translation.x = 0.27;
   transformStamped.transform.translation.y = 0;
   transformStamped.transform.translation.z = 0;
   transformStamped.transform.rotation = upper2lowerRelativeQuaternion;
@@ -73,7 +78,7 @@ void lowerImudataCallback(const sensor_msgs::Imu::ConstPtr& msg){
 
   transformStamped.header.frame_id = "lower_arm";
   transformStamped.child_frame_id = "wrist";
-  transformStamped.transform.translation.x = 0.25;
+  transformStamped.transform.translation.x = 0.3;
   transformStamped.transform.translation.y = 0;
   transformStamped.transform.translation.z = 0;
   transformStamped.transform.rotation.x = 0;
