@@ -6,15 +6,16 @@
 #include <geometry_msgs/TransformStamped.h>
 #include <sensor_msgs/Imu.h>
 
-tf2::Quaternion lowerImuQuaternion_tf,
-                upperImuQuaternion_tf,
-                upper2lowerRelativeQuaternion_tf;
-                
-geometry_msgs::Quaternion lowerImuQuaternion,
-                          upperImuQuaternion,
-                          upper2lowerRelativeQuaternion;
+tf2::Quaternion lowerArmQuat_tf,
+                upperArmQuat_tf,
+                upper2lowerQuat_tf;
 
-void waistImudataCallback(const geometry_msgs::Quaternion::ConstPtr &msg)
+geometry_msgs::Quaternion lowerArmQuat,
+                          upperArmQuat,
+                          upper2lowerQuat;
+
+// broadcast earth->fbf(Floating Body Fixed) TF
+void waistQuatdataCallback(const geometry_msgs::Quaternion::ConstPtr &msg)
 {
     static tf2_ros::TransformBroadcaster br;
     geometry_msgs::TransformStamped transformStamped;
@@ -29,7 +30,8 @@ void waistImudataCallback(const geometry_msgs::Quaternion::ConstPtr &msg)
     br.sendTransform(transformStamped);
 }
 
-void upperImudataCallback(const geometry_msgs::Quaternion::ConstPtr &msg)
+// broadcast fbf->upper_arm(shoulder) TF
+void upperQuatdataCallback(const geometry_msgs::Quaternion::ConstPtr &msg)
 {
     static tf2_ros::TransformBroadcaster br;
     geometry_msgs::TransformStamped transformStamped;
@@ -44,17 +46,18 @@ void upperImudataCallback(const geometry_msgs::Quaternion::ConstPtr &msg)
     br.sendTransform(transformStamped);
 }
 
-void lowerImudataCallback(const geometry_msgs::Quaternion::ConstPtr &msg)
+// calculate releative quat(rot) between upper_arm -> lower_arm broadcast upper_arm->lower_arm->wrist TF
+void lowerQuatdataCallback(const geometry_msgs::Quaternion::ConstPtr &msg)
 {
     static tf2_ros::TransformBroadcaster br;
     geometry_msgs::TransformStamped transformStamped;
 
-    lowerImuQuaternion = *msg;
-    tf2::convert(lowerImuQuaternion, lowerImuQuaternion_tf);
+    lowerArmQuat = *msg;
+    tf2::convert(lowerArmQuat, lowerArmQuat_tf);
 
-    upper2lowerRelativeQuaternion_tf = upperImuQuaternion_tf.inverse() * lowerImuQuaternion_tf;
+    upper2lowerQuat_tf = upperArmQuat_tf.inverse() * lowerArmQuat_tf;
 
-    tf2::convert(upper2lowerRelativeQuaternion_tf, upper2lowerRelativeQuaternion);
+    tf2::convert(upper2lowerQuat_tf, upper2lowerQuat);
 
     transformStamped.header.stamp = ros::Time::now();
     transformStamped.header.frame_id = "upper_arm";
@@ -62,7 +65,7 @@ void lowerImudataCallback(const geometry_msgs::Quaternion::ConstPtr &msg)
     transformStamped.transform.translation.x = 0;
     transformStamped.transform.translation.y = 0;
     transformStamped.transform.translation.z = -0.27;
-    transformStamped.transform.rotation = upper2lowerRelativeQuaternion;
+    transformStamped.transform.rotation = upper2lowerQuat;
     br.sendTransform(transformStamped);
 
     transformStamped.header.frame_id = "lower_arm";
@@ -83,9 +86,9 @@ int main(int argc, char **argv)
 
     ros::NodeHandle nh;
 
-    ros::Subscriber upperImuSub = nh.subscribe("/shoulder_fbf", 1, upperImudataCallback);
-    ros::Subscriber lowerImuSub = nh.subscribe("/wrist_fbf", 1, lowerImudataCallback);
-    ros::Subscriber waistImuSub = nh.subscribe("/dh_matrix_fbf", 1, waistImudataCallback);
+    ros::Subscriber upperImuSub = nh.subscribe("/shoulder_fbf", 1, upperQuatdataCallback);
+    ros::Subscriber lowerImuSub = nh.subscribe("/wrist_fbf", 1, lowerQuatdataCallback);
+    ros::Subscriber waistImuSub = nh.subscribe("/dh_matrix_fbf", 1, waistQuatdataCallback);
 
     while (ros::ok())
     {
